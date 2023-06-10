@@ -2,7 +2,7 @@ package personal.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
+//Create, Read, Update, Delete
 public class RepositoryFile implements Repository {
     private UserMapper mapper = new UserMapper();
     private FileOperation fileOperation;
@@ -16,7 +16,7 @@ public class RepositoryFile implements Repository {
         List<String> lines = fileOperation.readAllLines();
         List<User> users = new ArrayList<>();
         for (String line : lines) {
-            users.add(mapper.map(line));
+            users.add(mapper.map(line)); //mapper - преобразование данных в другие данные
         }
         return users;
     }
@@ -36,11 +36,37 @@ public class RepositoryFile implements Repository {
         String id = String.format("%d", newId);
         user.setId(id);
         users.add(user);
+        List<String> lines = mapToString(users);
+        fileOperation.saveAllLines(lines);
+        return id;
+    }
+
+    private List<String> mapToString(List<User> users) {
         List<String> lines = new ArrayList<>();
         for (User item: users) {
             lines.add(mapper.map(item));
         }
-        fileOperation.saveAllLines(lines);
-        return id;
+        return lines;
+    }
+
+    @Override
+    public User updateUser(User user) {
+        List<User> users = getAllUsers();
+        for (User currentUser: users){
+            if (currentUser.getId().equals(user.getId())){
+                currentUser.setFirstName(user.getFirstName());
+                currentUser.setLastName(user.getLastName());
+                currentUser.setPhone(user.getPhone());
+            }
+        }
+        fileOperation.saveAllLines(mapToString(users));
+        return user;
+    }
+
+    @Override
+    public void deleteUser(User user) {
+        List<User> users = getAllUsers();
+        users.removeIf(us -> us.getId().equals(user.getId()));
+        fileOperation.saveAllLines(mapToString(users));
     }
 }
